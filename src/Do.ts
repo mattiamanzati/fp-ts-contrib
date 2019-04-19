@@ -103,13 +103,13 @@ export function Do<M>(M: Monad<M>): Do0<M, {}> {
   function toDo<S extends object>(ms: HKT<M, S>): Do0<M, S> {
     return {
       do(mv: HKT<M, unknown>): Do0<M, S> {
-        return toDo(M.chain(ms, a => M.map(mv, () => a)))
+        return toDo(M.ap(M.map(mv, _ => (a: S) => a), ms))
       },
       doL(fmv: (s: S) => HKT<M, unknown>): Do0<M, S> {
         return toDo(M.chain(ms, a => M.map(fmv(a), () => a)))
       },
       bind<N extends string, B>(name: Exclude<N, keyof S>, mb: HKT<M, B>): Do0<M, S & { [K in N]: B }> {
-        return toDo(M.chain(ms, a => M.map(mb, b => ({ ...(a as object), [name]: b })))) as any
+        return toDo(M.ap(M.map(mb, b => (a: S) => ({ ...(a as object), [name]: b })), ms)) as any
       },
       bindL<N extends string, B>(name: Exclude<N, keyof S>, fmb: (s: S) => HKT<M, B>): Do0<M, S & { [K in N]: B }> {
         return toDo(M.chain(ms, a => M.map(fmb(a), b => ({ ...(a as object), [name]: b })))) as any
